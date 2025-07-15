@@ -1,9 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
 
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { agentSchema } from "../../validation/agentSchema";
+import { getSupabaseClient } from "./supabaseClient";
 
 dotenv.config();
 
@@ -43,22 +47,41 @@ interface Message {
   content: string;
 }
 
-const messages: Me
-app.post("/save-agent", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : undefined;
-  const supabase = getSupabaseClient(token);
+// simple in-memory fallback
+const messages: Message[] = [];
+
+app.get("/chat", async (_req, res) => {
+  const { data, error } = await supabase.from("chat_messages").select("*").order("id");
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data ?? messages);
+});
+
+app.post("/chat", async (req, res) => {
+  const { content } = req.body;
   const { data, error } = await supabase
-    .from("user_agents")
-    .insert(req.body)
+    .from("chat_messages")
+    .insert({ content })
     .select()
     .single();
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
+  if (error) return res.status(400).json({ error: error.message });
+  messages.push({ id: data.id, content: data.content });
   res.json(data);
+});
+
+app.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 app.post("/validate-agent", (req, res) => {
   const result = agentSchema.safeParse(req.body);
   if (!result.success) {
@@ -77,9 +100,22 @@ app.post("/generate-ai-agent", (req, res) => {
   res.json(spec);
 });
 
-app.post("/save-agent", (req, res) => {
-  // placeholder save logic
-  res.json({ saved: true, spec: req.body });
+app.post("/save-agent", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : undefined;
+  const client = getSupabaseClient(token);
+  const { data, error } = await client.from("user_agents").insert(req.body).select().single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/create-agent", async (req, res) => {
+  const { messages: chat } = req.body as { messages: Message[] };
+  const name = `Agent ${Date.now()}`;
+  const description = chat[chat.length - 1]?.content || "Created from chat";
+  const { data, error } = await supabase.from("user_agents").insert({ name, description }).select().single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
 });
 
 app.post("/subscribe", async (req, res) => {
