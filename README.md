@@ -23,8 +23,8 @@ AgentForgeHQ/
 │   │   │   ├── lib/
 │   │   │   └── styles/
 │   │   └── tsconfig.json
-│   ├── mobile/
-│   │   ├── Dockerfile            # React Native app
+│(   ├── mobile/
+$1)│   │   ├── Dockerfile            # React Native app
 │   │   ├── src/
 │   │   │   ├── App.tsx
 │   │   │   └── components/
@@ -46,6 +46,7 @@ AgentForgeHQ/
 │   └── workflows/ci.yml          # build + test + coverage
 ├── docker-compose.yml            # local dev orchestrator
 ├── pnpm-workspace.yaml           # pnpm monorepo glue
+├── client/                      # Vite React client app
 ├── .env.example                  # var template
 ├── .prettierrc                   # code‑style config
 └── README.md                     # this blueprint + badges
@@ -56,3 +57,15 @@ AgentForgeHQ/
 ![CI](https://img.shields.io/github/actions/workflow/status/yourorg/yourrepo/ci.yml?branch=main)
 
 This file is a starting point and will expand as the project grows.
+
+## Configuration
+
+Copy `.env.example` to `.env` and provide your keys:
+
+```bash
+cp .env.example .env
+```
+
+Fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`OPENAI_API_KEY`, and `STRIPE_SECRET_KEY` with your project credentials.
+The backend loads these variables via `dotenv` at startup.
