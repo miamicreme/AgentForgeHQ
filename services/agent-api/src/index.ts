@@ -4,11 +4,13 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 
+
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { agentSchema } from "../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
+
 
 dotenv.config();
 
@@ -17,8 +19,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+  process.env.VITE_SUPABASE_URL as string,
+  process.env.VITE_SUPABASE_ANON_KEY as string
 );
 
 const app = express();
@@ -52,6 +54,7 @@ interface Message {
   content: string;
 }
 
+
 const messages: Message[] = [];
 let nextId = 1;
 
@@ -71,14 +74,28 @@ app.post("/save-agent", async (req, res) => {
     ? authHeader.split(" ")[1]
     : undefined;
   const supabase = getSupabaseClient(token);
+
   const { data, error } = await supabase
-    .from("user_agents")
-    .insert(req.body)
+    .from("chat_messages")
+    .insert({ content })
     .select()
     .single();
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
+  if (error) return res.status(400).json({ error: error.message });
+  messages.push({ id: data.id, content: data.content });
+  res.json(data);
+});
+
+app.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
   res.json(data);
 });
 
@@ -92,6 +109,7 @@ app.post("/validate-agent", (req, res) => {
 
 app.post("/generate-ai-agent", async (req, res) => {
   const { template, deepResearch } = req.body;
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -106,6 +124,7 @@ app.post("/generate-ai-agent", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to generate agent" });
   }
+
 });
 
 app.post("/subscribe", async (req, res) => {

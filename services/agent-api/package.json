@@ -17,12 +17,10 @@
     "@supabase/supabase-js": "^2.51.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
-    "express": "^5.1.0",https://github.com/miamicreme/AgentForgeHQ/pull/28/conflict?name=services%252Fagent-api%252Fpackage.json&ancestor_oid=200f582e609e13d1d2a9eb33468f1039eb32d74c&base_oid=7a3d0d57c72f95fdf017a643b8134d447fb1ccd8&head_oid=7c9ba820dec12cdb0860af65eea6e8bb4b855754
-
+    "express": "^5.1.0",
     "stripe": "^14.0.0",
     "@supabase/supabase-js": "^2.39.5",
     "openai": "^4.48.0"
-
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

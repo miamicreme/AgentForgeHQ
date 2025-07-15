@@ -27,6 +27,15 @@ export default function Chat() {
     setInput('');
   };
 
+  const createAgent = async () => {
+    await fetch(`${import.meta.env.VITE_API_URL}/create-agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+    alert('Agent created');
+  };
+
   return (
     <div>
       <h2>Chat</h2>
@@ -37,6 +46,7 @@ export default function Chat() {
       </div>
       <input value={input} onChange={(e) => setInput(e.target.value)} />
       <button onClick={sendMessage}>Send</button>
+      <button onClick={createAgent}>Create Agent</button>
     </div>
   );
 }
