@@ -1,49 +1,46 @@
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
 
-const root = path.resolve(__dirname, '..');
-const agentsDir = path.join(root, 'apps', 'backend', 'src', 'agents');
-const exportAgentsDir = path.join(root, 'export', 'agents');
-const composeFile = path.join(root, 'export', 'docker-compose.yml');
+async function main() {
+  const root = path.join(__dirname, '..');
+  const agentsDir = path.join(root, 'apps', 'backend', 'src', 'agents');
+  const exportDir = path.join(root, 'export');
+  const exportAgentsDir = path.join(exportDir, 'agents');
 
-function getAgentNames() {
-  if (!fs.existsSync(agentsDir)) return [];
-  return fs.readdirSync(agentsDir, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name);
-}
+  await fs.rm(exportAgentsDir, { recursive: true, force: true });
+  await fs.mkdir(exportAgentsDir, { recursive: true });
 
-function copyAgents(names) {
-  if (!fs.existsSync(exportAgentsDir)) {
-    fs.mkdirSync(exportAgentsDir, { recursive: true });
+  const entries = await fs.readdir(agentsDir, { withFileTypes: true });
+  const agentNames = [];
+
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) continue;
+    const srcPath = path.join(agentsDir, entry.name);
+    const destPath = path.join(exportAgentsDir, entry.name);
+    await fs.cp(srcPath, destPath, { recursive: true });
+    agentNames.push(entry.name);
   }
-  names.forEach(name => {
-    const src = path.join(agentsDir, name);
-    const dest = path.join(exportAgentsDir, name);
-    fs.rmSync(dest, { recursive: true, force: true });
-    fs.cpSync(src, dest, { recursive: true });
-  });
-}
 
-function createCompose(names) {
   const lines = [];
-  lines.push("version: '3.8'");
+  lines.push('version: "3"');
   lines.push('services:');
   lines.push('  gateway:');
-  lines.push('    build: ../apps/backend');
-  lines.push("    ports:");
-  lines.push("      - '4000:4000'");
-  names.forEach(name => {
+  lines.push('    build: ./apps/backend');
+  lines.push('    ports:');
+  lines.push('      - "4000:4000"');
+
+  for (const name of agentNames) {
     lines.push(`  ${name}:`);
-    lines.push(`    build: ./agents/${name}`);
-  });
-  if (!fs.existsSync(path.dirname(composeFile))) {
-    fs.mkdirSync(path.dirname(composeFile), { recursive: true });
+    lines.push(`    build: ./export/agents/${name}`);
   }
-  fs.writeFileSync(composeFile, lines.join('\n'));
+
+  await fs.mkdir(exportDir, { recursive: true });
+  await fs.writeFile(path.join(exportDir, 'docker-compose.yml'), lines.join('\n'));
+
+  console.log(`Exported ${agentNames.length} agent(s).`);
 }
 
-const agentNames = getAgentNames();
-copyAgents(agentNames);
-createCompose(agentNames);
-console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}`);
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
