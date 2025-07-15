@@ -30,11 +30,15 @@ function createCompose(names) {
   lines.push("version: '3.8'");
   lines.push('services:');
   lines.push('  gateway:');
+  // Build context for the gateway should resolve from the export directory
+  // so docker compose can be executed from within `export/`.
   lines.push('    build: ../apps/backend');
   lines.push("    ports:");
   lines.push("      - '4000:4000'");
   names.forEach(name => {
     lines.push(`  ${name}:`);
+    // Each agent is copied under export/agents so use a relative build path
+    // that works when the compose file is run from export/.
     lines.push(`    build: ./agents/${name}`);
   });
   if (!fs.existsSync(path.dirname(composeFile))) {
