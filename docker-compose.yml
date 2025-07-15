@@ -6,7 +6,7 @@ services:
       - '3000:3000'
     env_file:
       - .env.example
-  admin:
+  admin-dashboard:
     build: ./apps/admin-dashboard
     ports:
       - '3001:3000'
@@ -18,9 +18,19 @@ services:
       - '8081:8081'
     env_file:
       - .env.example
-  backend:
-    build: ./apps/backend
+  agent-api:
+    build: ./services/agent-api
     ports:
       - '4000:4000'
+    env_file:
+      - .env.example
+  gateway:
+    build: ./apps/gateway
+    ports:
+      - '4001:4000'
+    env_file:
+      - .env.example
+  skip-trace-enricher:
+    build: ./apps/backend/src/agents/SkipTraceEnricher
     env_file:
       - .env.example
