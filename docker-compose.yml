@@ -24,3 +24,11 @@ services:
       - '4000:4000'
     env_file:
       - .env.example
+  gateway:
+    build: ./apps/gateway
+    ports:
+      - '4001:4001'
+    env_file:
+      - .env.example
+    depends_on:
+      - backend
