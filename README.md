@@ -54,13 +54,54 @@ $1)│   │   ├── Dockerfile            # React Native app
 
 ## Badges
 
-![CI](https://img.shields.io/github/actions/workflow/status/yourorg/yourrepo/ci.yml?branch=main)
+![CI](https://img.shields.io/github/actions/workflow/status/miamicreme/AgentForgeHQ/ci.yml?branch=main)
 
 This file is a starting point and will expand as the project grows.
 
+## Prerequisites
+
+- **Node.js** 18 or higher
+- **PNPM** 8 or higher
+- **Docker** and Docker Compose
+
+Install PNPM globally if you don't already have it:
+
+```bash
+npm install -g pnpm
+```
+
+## Installation
+
+Install all workspace dependencies from the repository root:
+
+```bash
+pnpm install
+```
+
+Apps outside the workspace (`client` and `backend`) require running `pnpm install` in their respective directories.
+
+## Running Apps Locally
+
+Use PNPM to start any app with its `dev` script:
+
+```bash
+pnpm --filter frontend dev          # apps/frontend
+pnpm --filter admin-dashboard dev   # apps/admin-dashboard
+pnpm --filter mobile dev            # apps/mobile
+pnpm --filter backend dev           # apps/backend
+pnpm --filter agent-api dev         # services/agent-api
+```
+
+For the standalone `client` and `backend` directories:
+
+```bash
+cd client && pnpm dev
+cd ../backend && pnpm dev
+```
+
 ## Configuration
 
-Copy `.env.example` to `.env` and provide your keys:
+Copy `.env.example` to `.env` and provide your keys. The example file lists all required variables:
 
 ```bash
 cp .env.example .env
