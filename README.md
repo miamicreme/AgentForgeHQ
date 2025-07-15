@@ -521,6 +521,54 @@ PAGERDUTY_ROUTING_KEY="pd-..."
 
 ---
 
+## 🖥️ Language Selection & Container Patterns → **Build**
+
+### 🌐 When to choose **Python**
+
+| Use‑Case                           | Why Python Shines                                            | Typical Libs                                     |
+| ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| Data wrangling & ETL               | Mature ecosystem, Pandas / Polars, great CSV/Parquet support | `pandas`, `polars`, `duckdb`, `pyarrow`          |
+| ML / CV / NLP micro‑models         | Direct access to PyTorch / TensorFlow; easier fine‑tuning    | `torch`, `transformers`, `sentence‑transformers` |
+| Heavy scientific compute           | NumPy broadcasting + Cython/Numba acceleration               | `numpy`, `numba`, `scipy`                        |
+| Rapid prototyping of tool wrappers | Fewer lines of code, rich REPL, Jupyter                      | `fastapi`, `pydantic`, `langchain`               |
+| Legacy integration (OpenCV, GDAL…) | Many C libs expose Python bindings                           | OpenCV, GDAL                                     |
+
+### 🟦 When to choose **TypeScript**
+
+| Use‑Case                              | Why TS Wins                                            | Typical Libs                                           |
+| ------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Agent orchestration & tool routing    | Strong typing, baked‑in async, seamless Node ecosystem | `langchainjs`, `graphql`, `apollo‑server`, `node‑nats` |
+| Web‑first APIs & UIs                  | Same language across frontend & backend, better DX     | `Next.js`, `tRPC`, `zod`                               |
+| Edge Functions (Supabase, Cloudflare) | Minimal cold start, ESM modules                        | `supabase‑js`, `itty‑router`, `wrangler`               |
+| DevOps scripts & CLI tooling          | `ts‑node` + strong typing for complex CLIs             | `commander`, `oclif`                                   |
+| High‑concurrency I/O                  | Event loop, lightweight memory footprint               | `undici`, `fastify`                                    |
+
+> **Mix & Match:** Level‑1 Tool wrappers are often Python (data‑heavy), whereas Level‑2/3 agents gravitate to TypeScript for stronger contracts and seamless GraphQL integration.  Level‑4 GOD‑Agent can be either—pick the language that shares most code with your optimisation stack.
+
+### 🐳 Container Strategy
+
+| Layer       | Dockerfile Target | Base Image                                      | Entry CMD                               |
+| ----------- | ----------------- | ----------------------------------------------- | --------------------------------------- |
+| **Dev**     | `Dockerfile.dev`  | `node:20‑slim` or `python:3.11‑slim` + `poetry` | `pnpm dev` / `uvicorn app:api --reload` |
+| **Prod‑TS** | `Dockerfile.prod` | `gcr.io/distroless/nodejs`                      | `node dist/index.js`                    |
+| **Prod‑Py** | `Dockerfile.prod` | `gcr.io/distroless/python3`                     | `python -m app`                         |
+
+* **Multi‑Stage Build**: compile binaries, strip dev deps, then copy into distroless layer.
+* **Agent Labels**: `org.agentforge.level`, `org.agentforge.name`, `org.agentforge.version` embedded for discovery.
+
+### 🛠️ Running Modes
+
+1. **Standalone** – `docker run agentforge/skip_tracer:1.2.3` (exposes gRPC+NATS).
+2. **Apollo Gateway Plug‑in** – Gateway auto‑mounts agents that register on `sa.discovery` topic.
+3. **Exported Bundle** – `forge agent export --agent skip_tracer --format compose` produces `docker‑compose.yml` for client on‑prem installs.
+
+### 🔄 Runtime Discovery & Health
+
+* Agents emit a heartbeat on `sa.health.<agent_id>` every 15 s (JSON `{status:'ok', ts}`).
+* Apollo Gateway removes agents missing heartbeats for > 45 s.
+
+---
+
 ### ✅ Everything you need to hit a perfect‑10
 
 With the quick‑start diagram, messaging appendix, env template, and glossary added, the **AgentForgeHQ framework** is now fully self‑contained, immediately deployable, and editor‑friendly.  Plug in your own agent specs or run the Bulk Factory to scaffold dozens of agents in minutes.
