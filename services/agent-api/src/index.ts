@@ -1,9 +1,14 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { agentSchema } from "../../validation/agentSchema";
+import { getSupabaseClient } from "./supabaseClient";
+import openai from "./openai";
 
 dotenv.config();
 
@@ -20,6 +25,10 @@ const app = express();
 app.use(cors(), express.json());
 
 const templatesDir = path.join(__dirname, "../templates");
+const systemPrompt = fs.readFileSync(
+  path.join(__dirname, "../manual/system-prompt.txt"),
+  "utf8"
+);
 
 app.get("/templates", (_req, res) => {
   try {
@@ -43,7 +52,19 @@ interface Message {
   content: string;
 }
 
-const messages: Me
+const messages: Message[] = [];
+let nextId = 1;
+
+app.get("/chat", (_req, res) => {
+  res.json(messages);
+});
+
+app.post("/chat", (req, res) => {
+  const message: Message = { id: nextId++, content: req.body.content };
+  messages.push(message);
+  res.json(message);
+});
+
 app.post("/save-agent", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith("Bearer ")
@@ -59,6 +80,8 @@ app.post("/save-agent", async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
   res.json(data);
+});
+
 app.post("/validate-agent", (req, res) => {
   const result = agentSchema.safeParse(req.body);
   if (!result.success) {
@@ -67,19 +90,22 @@ app.post("/validate-agent", (req, res) => {
   res.json({ valid: true });
 });
 
-app.post("/generate-ai-agent", (req, res) => {
+app.post("/generate-ai-agent", async (req, res) => {
   const { template, deepResearch } = req.body;
-  const spec = {
-    template,
-    deepResearch: !!deepResearch,
-    generatedAt: new Date().toISOString(),
-  };
-  res.json(spec);
-});
-
-app.post("/save-agent", (req, res) => {
-  // placeholder save logic
-  res.json({ saved: true, spec: req.body });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: JSON.stringify({ template, deepResearch }) },
+      ],
+    });
+    const content = completion.choices[0].message?.content || "{}";
+    res.json(JSON.parse(content));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to generate agent" });
+  }
 });
 
 app.post("/subscribe", async (req, res) => {
