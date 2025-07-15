@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "workspaces": ["apps/*", "packages/*", "services/*"],
+  "scripts": {
+    "lint": "echo \"No lint script defined\"",
+    "build": "echo \"No build script defined\"",
+    "test": "echo \"No tests specified\""
+  }
+}
