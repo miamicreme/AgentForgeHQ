@@ -1,9 +1,14 @@
 {
   "private": true,
-  "workspaces": ["apps/*", "packages/*", "services/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
   "scripts": {
     "lint": "echo \"No lint script defined\"",
     "build": "echo \"No build script defined\"",
-    "test": "echo \"No tests specified\""
+    "test": "echo \"No tests specified\"",
+    "export-agents": "node scripts/export-agents.js"
   }
 }
