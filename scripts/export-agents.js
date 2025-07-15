@@ -1,33 +1,42 @@
-const fs = require('fs');
+#!/usr/bin/env node
+
+const fs = require('fs/promises');
 const path = require('path');
 
-const root = path.resolve(__dirname, '..');
-const agentsDir = path.join(root, 'apps', 'backend', 'src', 'agents');
-const exportAgentsDir = path.join(root, 'export', 'agents');
-const composeFile = path.join(root, 'export', 'docker-compose.yml');
+async function main() {
 
-function getAgentNames() {
-  if (!fs.existsSync(agentsDir)) return [];
-  return fs.readdirSync(agentsDir, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name);
-}
+  const repoRoot = path.join(__dirname, '..');
+  const agentsDir = path.join(repoRoot, 'apps', 'backend', 'src', 'agents');
+  const exportDir = path.join(repoRoot, 'export');
+  const exportAgentsDir = path.join(exportDir, 'agents');
 
-function copyAgents(names) {
-  if (!fs.existsSync(exportAgentsDir)) {
-    fs.mkdirSync(exportAgentsDir, { recursive: true });
+  try {
+    await fs.access(agentsDir);
+  } catch {
+    console.error(`Agents directory not found: ${agentsDir}`);
+    process.exit(1);
   }
-  names.forEach(name => {
-    const src = path.join(agentsDir, name);
-    const dest = path.join(exportAgentsDir, name);
-    fs.rmSync(dest, { recursive: true, force: true });
-    fs.cpSync(src, dest, { recursive: true });
-  });
-}
 
-function createCompose(names) {
+  await fs.rm(exportAgentsDir, { recursive: true, force: true });
+  await fs.mkdir(exportAgentsDir, { recursive: true });
+
+  const entries = await fs.readdir(agentsDir, { withFileTypes: true });
+  const agentNames = [];
+
+
+  await Promise.all(
+    entries.map(async (entry) => {
+      if (!entry.isDirectory() || entry.name.startsWith('.')) return;
+      const srcPath = path.join(agentsDir, entry.name);
+      const destPath = path.join(exportAgentsDir, entry.name);
+      await fs.cp(srcPath, destPath, { recursive: true });
+      agentNames.push(entry.name);
+    }),
+  );
+
+
   const lines = [];
-  lines.push("version: '3.8'");
+  lines.push('version: "3"');
   lines.push('services:');
   lines.push('  gateway:');
   // Build context for the gateway should resolve from the export directory
@@ -43,11 +52,20 @@ function createCompose(names) {
   });
   if (!fs.existsSync(path.dirname(composeFile))) {
     fs.mkdirSync(path.dirname(composeFile), { recursive: true });
+
   }
-  fs.writeFileSync(composeFile, lines.join('\n'));
+
+  await fs.mkdir(exportDir, { recursive: true });
+  await fs.writeFile(
+    path.join(exportDir, 'docker-compose.yml'),
+    lines.join('\n') + '\n',
+  );
+
+  console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}.`);
+
 }
 
-const agentNames = getAgentNames();
-copyAgents(agentNames);
-createCompose(agentNames);
-console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}`);
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
