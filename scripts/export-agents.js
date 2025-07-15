@@ -1,11 +1,21 @@
+#!/usr/bin/env node
+
 const fs = require('fs/promises');
 const path = require('path');
 
 async function main() {
-  const root = path.join(__dirname, '..');
-  const agentsDir = path.join(root, 'apps', 'backend', 'src', 'agents');
-  const exportDir = path.join(root, 'export');
+
+  const repoRoot = path.join(__dirname, '..');
+  const agentsDir = path.join(repoRoot, 'apps', 'backend', 'src', 'agents');
+  const exportDir = path.join(repoRoot, 'export');
   const exportAgentsDir = path.join(exportDir, 'agents');
+
+  try {
+    await fs.access(agentsDir);
+  } catch {
+    console.error(`Agents directory not found: ${agentsDir}`);
+    process.exit(1);
+  }
 
   await fs.rm(exportAgentsDir, { recursive: true, force: true });
   await fs.mkdir(exportAgentsDir, { recursive: true });
@@ -13,13 +23,17 @@ async function main() {
   const entries = await fs.readdir(agentsDir, { withFileTypes: true });
   const agentNames = [];
 
-  for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue;
-    const srcPath = path.join(agentsDir, entry.name);
-    const destPath = path.join(exportAgentsDir, entry.name);
-    await fs.cp(srcPath, destPath, { recursive: true });
-    agentNames.push(entry.name);
-  }
+
+  await Promise.all(
+    entries.map(async (entry) => {
+      if (!entry.isDirectory() || entry.name.startsWith('.')) return;
+      const srcPath = path.join(agentsDir, entry.name);
+      const destPath = path.join(exportAgentsDir, entry.name);
+      await fs.cp(srcPath, destPath, { recursive: true });
+      agentNames.push(entry.name);
+    }),
+  );
+
 
   const lines = [];
   lines.push('version: "3"');
@@ -35,9 +49,13 @@ async function main() {
   }
 
   await fs.mkdir(exportDir, { recursive: true });
-  await fs.writeFile(path.join(exportDir, 'docker-compose.yml'), lines.join('\n'));
+  await fs.writeFile(
+    path.join(exportDir, 'docker-compose.yml'),
+    lines.join('\n') + '\n',
+  );
 
-  console.log(`Exported ${agentNames.length} agent(s).`);
+  console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}.`);
+
 }
 
 main().catch((err) => {

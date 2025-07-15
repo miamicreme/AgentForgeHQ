@@ -99,6 +99,18 @@ cd client && pnpm dev
 cd ../backend && pnpm dev
 ```
 
+## Exporting Agents
+
+Generate agent containers and a Compose file:
+
+```bash
+npm run export-agents
+```
+
+This copies agents from `apps/backend/src/agents` into `export/agents` and
+writes `export/docker-compose.yml` that references these agents along with the
+gateway.
+
 ## Configuration
 
 Copy `.env.example` to `.env` and provide your keys. The example file lists all required variables:

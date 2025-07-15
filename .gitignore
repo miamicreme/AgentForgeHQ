@@ -4,5 +4,4 @@ dist/
 .expo/
 logs/
 build/
-# Exported agents and Docker Compose artifacts
 export/
