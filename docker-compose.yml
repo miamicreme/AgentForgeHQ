@@ -34,3 +34,4 @@ services:
     build: ./apps/backend/src/agents/SkipTraceEnricher
     env_file:
       - .env.example
+

@@ -19,6 +19,7 @@ export default function App() {
           <ul>
             <li><Link to="/chat">Chat</Link></li>
             <li><Link to="/agent">Agent Builder</Link></li>
+            <li><Link to="/pricing">Pricing</Link></li>
           </ul>
         </>
       ) : (
