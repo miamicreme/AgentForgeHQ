@@ -119,6 +119,6 @@ Copy `.env.example` to `.env` and provide your keys. The example file lists all 
 cp .env.example .env
 ```
 
-Fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
 `OPENAI_API_KEY`, and `STRIPE_SECRET_KEY` with your project credentials.
 The backend loads these variables via `dotenv` at startup.
