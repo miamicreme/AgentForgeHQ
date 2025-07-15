@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  frontend:
+    build: ./apps/frontend
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.example
+  admin:
+    build: ./apps/admin-dashboard
+    ports:
+      - '3001:3000'
+    env_file:
+      - .env.example
+  mobile:
+    build: ./apps/mobile
+    ports:
+      - '8081:8081'
+    env_file:
+      - .env.example
+  backend:
+    build: ./apps/backend
+    ports:
+      - '4000:4000'
+    env_file:
+      - .env.example
