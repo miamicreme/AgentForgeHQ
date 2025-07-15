@@ -23,8 +23,8 @@ AgentForgeHQ/
 │   │   │   ├── lib/
 │   │   │   └── styles/
 │   │   └── tsconfig.json
-│   ├── mobile/
-│   │   ├── Dockerfile            # React Native app
+│(   ├── mobile/
+$1)│   │   ├── Dockerfile            # React Native app
 │   │   ├── src/
 │   │   │   ├── App.tsx
 │   │   │   └── components/
@@ -46,6 +46,7 @@ AgentForgeHQ/
 │   └── workflows/ci.yml          # build + test + coverage
 ├── docker-compose.yml            # local dev orchestrator
 ├── pnpm-workspace.yaml           # pnpm monorepo glue
+├── client/                      # Vite React client app
 ├── .env.example                  # var template
 ├── .prettierrc                   # code‑style config
 └── README.md                     # this blueprint + badges
