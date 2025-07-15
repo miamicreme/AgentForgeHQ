@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+
 const fs = require('fs/promises');
 const path = require('path');
 
 async function main() {
+
   const repoRoot = path.join(__dirname, '..');
   const agentsDir = path.join(repoRoot, 'apps', 'backend', 'src', 'agents');
   const exportDir = path.join(repoRoot, 'export');
@@ -21,6 +23,7 @@ async function main() {
   const entries = await fs.readdir(agentsDir, { withFileTypes: true });
   const agentNames = [];
 
+
   await Promise.all(
     entries.map(async (entry) => {
       if (!entry.isDirectory() || entry.name.startsWith('.')) return;
@@ -30,6 +33,7 @@ async function main() {
       agentNames.push(entry.name);
     }),
   );
+
 
   const lines = [];
   lines.push('version: "3"');
@@ -51,6 +55,7 @@ async function main() {
   );
 
   console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}.`);
+
 }
 
 main().catch((err) => {
