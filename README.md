@@ -23,6 +23,12 @@ AgentForgeHQ/
 │   │   │   ├── lib/
 │   │   │   └── styles/
 │   │   └── tsconfig.json
+│   ├── mobile/
+│   │   ├── Dockerfile            # React Native app
+│   │   ├── src/
+│   │   │   ├── App.tsx
+│   │   │   └── components/
+│   │   └── tsconfig.json
 │   └── backend/
 │       ├── Dockerfile            # node18‑slim ➜ dist
 │       ├── src/
