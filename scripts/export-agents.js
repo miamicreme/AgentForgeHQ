@@ -47,4 +47,3 @@ const agentNames = getAgentNames();
 copyAgents(agentNames);
 createCompose(agentNames);
 console.log(`Exported ${agentNames.length} agent${agentNames.length === 1 ? '' : 's'}`);
-
