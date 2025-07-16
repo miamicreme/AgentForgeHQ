@@ -1,0 +1,15 @@
+# GraphQL schema for SkipTraceEnricher
+
+type EnrichedRecord {
+  id: ID!
+  data: String!
+  status: String!
+}
+
+type Query {
+  enrichedRecord(id: ID!): EnrichedRecord
+}
+
+type Mutation {
+  enrich(data: String!): EnrichedRecord!
+}
