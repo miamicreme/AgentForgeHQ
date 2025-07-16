@@ -120,7 +120,7 @@ cp .env.example .env
 ```
 
 Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
-`OPENAI_API_KEY`, and `STRIPE_SECRET_KEY` with your project credentials.
+`VITE_OPENAI_API_KEY`, and `VITE_STRIPE_SECRET_KEY` with your project credentials.
 The backend loads these variables via `dotenv` at startup.
 
 

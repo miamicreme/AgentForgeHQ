@@ -13,7 +13,7 @@ import openai from "./openai";
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(process.env.VITE_STRIPE_SECRET_KEY as string);
 
 
 const app = express();
