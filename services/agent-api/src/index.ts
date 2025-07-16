@@ -68,23 +68,6 @@ app.post("/chat", (req, res) => {
   res.json(message);
 });
 
-app.post("/save-agent", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : undefined;
-  const supabase = getSupabaseClient(token);
-
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert({ content })
-    .select()
-    .single();
-  if (error) return res.status(400).json({ error: error.message });
-  messages.push({ id: data.id, content: data.content });
-  res.json(data);
-});
-
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signUp({ email, password });
