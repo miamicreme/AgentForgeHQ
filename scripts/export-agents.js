@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require('fs/promises');
-const { existsSync } = require('fs');
 const path = require('path');
 
 async function main() {
@@ -11,9 +10,7 @@ async function main() {
   const exportDir = path.join(repoRoot, 'export');
   const exportAgentsDir = path.join(exportDir, 'agents');
   const composeFile = path.join(exportDir, 'docker-compose.yml');
-  if (existsSync(composeFile)) {
-    await fs.rm(composeFile);
-  }
+  await fs.rm(composeFile, { force: true });
 
   try {
     await fs.access(agentsDir);
