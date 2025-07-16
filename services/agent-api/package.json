@@ -19,7 +19,6 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "stripe": "^14.0.0",
-    "@supabase/supabase-js": "^2.39.5",
     "openai": "^4.48.0"
   },
   "devDependencies": {
