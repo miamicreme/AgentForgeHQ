@@ -43,6 +43,20 @@ app.get("/templates", (_req, res) => {
   }
 });
 
+app.get("/export-agents", (_req, res) => {
+  const agentsDir = path.join(__dirname, "../../../apps/backend/src/agents");
+  try {
+    const entries = fs.readdirSync(agentsDir, { withFileTypes: true });
+    const agents = entries
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+      .map((e) => ({ name: e.name, url: `http://${e.name}:4000` }));
+    res.json(agents);
+  } catch (err) {
+    console.error("Failed to load agents", err);
+    res.status(500).json({ error: "Failed to load agents" });
+  }
+});
+
 app.get("/healthz", (_, res) => res.send("OK"));
 app.get("/", (_, res) => res.json({ service: "AgentForgeHQ API" }));
 

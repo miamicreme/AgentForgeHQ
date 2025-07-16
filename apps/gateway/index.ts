@@ -7,7 +7,7 @@ dotenv.config();
 async function loadSubgraphs() {
   const serviceUrl = process.env.AGENT_SERVICE_URL || 'http://backend:4000';
   try {
-    const res = await fetch(`${serviceUrl}/agents/export`);
+    const res = await fetch(`${serviceUrl}/export-agents`);
     const json = await res.json();
     return (json.data || []) as Array<{ name: string; url: string }>;
   } catch (err) {
