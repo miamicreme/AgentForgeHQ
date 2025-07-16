@@ -9,6 +9,7 @@ import Stripe from "stripe";
 import { agentSchema } from "../../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
+import { getSupabaseClient } from "./supabaseClient";
 
 
 dotenv.config();
@@ -133,6 +134,24 @@ app.post("/generate-ai-agent", async (req, res) => {
 
 });
 
+app.post("/save-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("user_agents")
+      .insert(req.body)
+      .select("id")
+      .single();
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json({ success: true, id: data.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save agent" });
+  }
+});
+
 app.post("/subscribe", async (req, res) => {
   const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
@@ -154,19 +173,6 @@ app.post("/subscribe", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to create subscription" });
   }
-});
-
-app.post("/save-agent", async (req, res) => {
-  const supabase = getSupabaseClient();
-  const result = agentSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ errors: result.error.errors });
-  }
-  const { error } = await supabase.from("agents").insert(result.data);
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  res.json({ success: true });
 });
 
 app.post("/create-agent", async (req, res) => {
