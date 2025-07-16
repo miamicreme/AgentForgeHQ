@@ -61,8 +61,6 @@ app.post("/chat", (req, res) => {
   messages.push(message);
   res.json(message);
 });
-
-
 app.post("/register", async (req, res) => {
   const supabase = getSupabaseClient();
   const { email, password } = req.body;
