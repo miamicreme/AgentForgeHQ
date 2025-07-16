@@ -485,8 +485,8 @@ jobs:
 
 ```dotenv
 # Core URLs
-SUPABASE_URL="https://xxxx.supabase.co"
-SUPABASE_SERVICE_KEY="super-secret-service-role-key"
+VITE_SUPABASE_URL="https://xxxx.supabase.co"
+VITE_SUPABASE_ANON_KEY="public-anon-key"
 NATS_URL="nats://nats:4222"
 OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 
