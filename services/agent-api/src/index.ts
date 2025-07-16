@@ -6,7 +6,6 @@ import path from "path";
 
 
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
 import { agentSchema } from "../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
@@ -17,11 +16,6 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-04-10',
 });
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL as string,
-  process.env.VITE_SUPABASE_ANON_KEY as string
-);
 
 const app = express();
 app.use(cors(), express.json());
@@ -68,24 +62,9 @@ app.post("/chat", (req, res) => {
   res.json(message);
 });
 
-app.post("/save-agent", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : undefined;
-  const supabase = getSupabaseClient(token);
-
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert({ content })
-    .select()
-    .single();
-  if (error) return res.status(400).json({ error: error.message });
-  messages.push({ id: data.id, content: data.content });
-  res.json(data);
-});
 
 app.post("/register", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -93,6 +72,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -128,6 +108,7 @@ app.post("/generate-ai-agent", async (req, res) => {
 });
 
 app.post("/subscribe", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
   if (!userId || !priceId) {
     return res.status(400).json({ error: "Missing userId or priceId" });
