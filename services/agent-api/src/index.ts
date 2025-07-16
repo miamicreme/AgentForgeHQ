@@ -108,18 +108,22 @@ app.post("/validate-agent", (req, res) => {
 });
 
 app.post("/generate-ai-agent", async (req, res) => {
-  const { template, deepResearch } = req.body;
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing prompt" });
+  }
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: JSON.stringify({ template, deepResearch }) },
+        { role: "user", content: prompt },
       ],
     });
-    const content = completion.choices[0].message?.content || "{}";
-    res.json(JSON.parse(content));
+    const content = completion.choices[0].message?.content || "";
+    res.json({ content });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to generate agent" });
