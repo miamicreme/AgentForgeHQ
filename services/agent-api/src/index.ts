@@ -7,7 +7,7 @@ import path from "path";
 
 import Stripe from "stripe";
 import { agentSchema } from "../../../validation/agentSchema";
-import { getSupabaseClient } from "./supabaseClient";
+import { createClient } from "@supabase/supabase-js";
 import openai from "./openai";
 
 
@@ -71,7 +71,6 @@ app.post("/chat", (req, res) => {
   res.json(message);
 });
 app.post("/register", async (req, res) => {
-  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -79,7 +78,6 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -126,7 +124,6 @@ app.post("/generate-ai-agent", async (req, res) => {
 });
 
 app.post("/subscribe", async (req, res) => {
-  const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
   if (!userId || !priceId) {
     return res.status(400).json({ error: "Missing userId or priceId" });
