@@ -16,6 +16,11 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL as string,
+  process.env.VITE_SUPABASE_ANON_KEY as string
+);
+
 
 const app = express();
 app.use(cors(), express.json());
@@ -23,6 +28,10 @@ app.use(cors(), express.json());
 const templatesDir = path.join(__dirname, "../templates");
 const systemPrompt = fs.readFileSync(
   path.join(__dirname, "../manual/system-prompt.txt"),
+  "utf8"
+);
+const deepSystemPrompt = fs.readFileSync(
+  path.join(__dirname, "../manual/deep-system-prompt.txt"),
   "utf8"
 );
 
@@ -86,22 +95,29 @@ app.post("/validate-agent", (req, res) => {
 });
 
 app.post("/generate-ai-agent", async (req, res) => {
-  const { prompt } = req.body;
+  const { prompt, deepResearch } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: "Missing prompt" });
   }
 
+  const promptText = deepResearch ? deepSystemPrompt : systemPrompt;
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: promptText },
         { role: "user", content: prompt },
       ],
     });
     const content = completion.choices[0].message?.content || "";
-    res.json({ content });
+    try {
+      res.json(JSON.parse(content));
+    } catch (err) {
+      console.error("Failed to parse JSON:", err);
+      res.status(500).json({ error: "Invalid JSON response" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to generate agent" });
