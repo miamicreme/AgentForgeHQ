@@ -6,7 +6,6 @@ import path from "path";
 
 
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
 import { agentSchema } from "../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
@@ -17,6 +16,7 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-04-10',
 });
+
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
@@ -67,25 +67,8 @@ app.post("/chat", (req, res) => {
   messages.push(message);
   res.json(message);
 });
-
-app.post("/save-agent", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : undefined;
-  const supabase = getSupabaseClient(token);
-
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert({ content })
-    .select()
-    .single();
-  if (error) return res.status(400).json({ error: error.message });
-  messages.push({ id: data.id, content: data.content });
-  res.json(data);
-});
-
 app.post("/register", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -93,6 +76,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -108,18 +92,22 @@ app.post("/validate-agent", (req, res) => {
 });
 
 app.post("/generate-ai-agent", async (req, res) => {
-  const { template, deepResearch } = req.body;
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing prompt" });
+  }
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: JSON.stringify({ template, deepResearch }) },
+        { role: "user", content: prompt },
       ],
     });
-    const content = completion.choices[0].message?.content || "{}";
-    res.json(JSON.parse(content));
+    const content = completion.choices[0].message?.content || "";
+    res.json({ content });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to generate agent" });
@@ -128,6 +116,7 @@ app.post("/generate-ai-agent", async (req, res) => {
 });
 
 app.post("/subscribe", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
   if (!userId || !priceId) {
     return res.status(400).json({ error: "Missing userId or priceId" });
