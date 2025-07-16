@@ -6,22 +6,21 @@ import path from "path";
 
 
 import Stripe from "stripe";
-import { agentSchema } from "../../validation/agentSchema";
+import { agentSchema } from "../../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
 
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-04-10',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL as string,
   process.env.VITE_SUPABASE_ANON_KEY as string
 );
+
 
 const app = express();
 app.use(cors(), express.json());
