@@ -19,8 +19,7 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "stripe": "^14.0.0",
-    "openai": "^x.y.z"
-
+    "openai": "^4.48.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
