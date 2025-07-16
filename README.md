@@ -486,17 +486,17 @@ jobs:
 ```dotenv
 # Core URLs
 VITE_SUPABASE_URL="https://xxxx.supabase.co"
+VITE_SUPABASE_SERVICE_KEY="service-role-key"
 VITE_SUPABASE_ANON_KEY="public-anon-key"
-NATS_URL="nats://nats:4222"
-OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+VITE_API_URL="http://localhost:4000"
 
 # Model Providers
-OPENAI_API_KEY="sk-..."
-GROQ_API_KEY="groq-..."
+VITE_OPENAI_API_KEY="sk-..."
+VITE_GROQ_API_KEY="groq-..."
 
 # Quotas & Budgets
-dailey_token_limit_global=2000000
-cpu_quota_cores_global=32
+VITE_DAILY_TOKEN_LIMIT_GLOBAL=2000000
+VITE_CPU_QUOTA_CORES_GLOBAL=32
 
 # Slack / PagerDuty
 SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
