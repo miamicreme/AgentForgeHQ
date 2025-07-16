@@ -9,6 +9,7 @@ async function main() {
   const agentsDir = path.join(repoRoot, 'apps', 'backend', 'src', 'agents');
   const exportDir = path.join(repoRoot, 'export');
   const exportAgentsDir = path.join(exportDir, 'agents');
+  const composeFile = path.join(exportDir, 'docker-compose.yml');
 
   try {
     await fs.access(agentsDir);
@@ -44,20 +45,15 @@ async function main() {
   lines.push('    build: ../apps/backend');
   lines.push("    ports:");
   lines.push("      - '4000:4000'");
-  names.forEach(name => {
+  agentNames.forEach(name => {
     lines.push(`  ${name}:`);
     // Each agent is copied under export/agents so use a relative build path
     // that works when the compose file is run from export/.
     lines.push(`    build: ./agents/${name}`);
   });
-  if (!fs.existsSync(path.dirname(composeFile))) {
-    fs.mkdirSync(path.dirname(composeFile), { recursive: true });
-
-  }
-
-  await fs.mkdir(exportDir, { recursive: true });
+  await fs.mkdir(path.dirname(composeFile), { recursive: true });
   await fs.writeFile(
-    path.join(exportDir, 'docker-compose.yml'),
+    composeFile,
     lines.join('\n') + '\n',
   );
 
