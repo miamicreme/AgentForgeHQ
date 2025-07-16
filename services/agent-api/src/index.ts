@@ -16,12 +16,6 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL as string,
-  process.env.VITE_SUPABASE_ANON_KEY as string
-);
-
-
 const app = express();
 app.use(cors(), express.json());
 
@@ -146,6 +140,34 @@ app.post("/subscribe", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to create subscription" });
   }
+});
+
+app.post("/save-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  const result = agentSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ errors: result.error.errors });
+  }
+  const { error } = await supabase.from("agents").insert(result.data);
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ success: true });
+});
+
+app.post("/create-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  const { messages } = req.body;
+  if (!Array.isArray(messages)) {
+    return res.status(400).json({ error: "messages must be an array" });
+  }
+  const { error } = await supabase
+    .from("agents")
+    .insert({ messages });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ success: true });
 });
 
 const port = process.env.PORT || 4000;
