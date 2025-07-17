@@ -28,7 +28,7 @@ export default function Chat() {
   };
 
   const createAgent = async () => {
-    await fetch(`${import.meta.env.VITE_API_URL}/create-agent`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/save-agent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages }),

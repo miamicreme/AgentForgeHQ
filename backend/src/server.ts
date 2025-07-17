@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import agents from './routes/agents';
 import chat from './routes/chat';
@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.use('/agents', agents);
 app.use('/', chat);
-app.get('/healthz', (_req, res) => res.send('OK'));
+app.get('/healthz', (_req: Request, res: Response) => res.send('OK'));
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
