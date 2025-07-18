@@ -48,6 +48,7 @@ $1)│   │   ├── Dockerfile            # React Native app
 ├── pnpm-workspace.yaml           # pnpm monorepo glue
 ├── client/                      # Vite React client app
 ├── .env.example                  # var template
+├── .env                          # your local environment values
 ├── .prettierrc                   # code‑style config
 └── README.md                     # this blueprint + badges
 ```
@@ -113,7 +114,7 @@ gateway.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and provide your keys. The example file lists all required variables:
+Copy `.env.example` to `.env` and provide your keys. Docker Compose loads from `.env`, so create it before starting any services. The example file lists all required variables:
 
 ```bash
 cp .env.example .env
