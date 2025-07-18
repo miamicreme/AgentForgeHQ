@@ -114,7 +114,7 @@ gateway.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and provide your keys. Docker Compose loads from `.env`, so create it before starting any services. The example file lists all required variables:
+Before running Docker Compose, copy `.env.example` to `.env` and provide your keys. Compose reads from `.env`, so create it prior to starting any services. The example file lists all required variables:
 
 ```bash
 cp .env.example .env

@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 const router = Router();
 
+
 interface Agent {
   id: number;
   name: string;
@@ -19,6 +20,7 @@ router.get('/templates', (_req, res) => {
     { name: 'basic', description: 'Basic template' },
     { name: 'advanced', description: 'Advanced template' }
   ]);
+
 });
 
 // Generate a simple agent spec from the provided data

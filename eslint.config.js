@@ -1,5 +1,6 @@
 const { FlatCompat } = require('@eslint/eslintrc');
 const js = require('@eslint/js');
+const path = require('path');
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
@@ -10,7 +11,7 @@ const compat = new FlatCompat({
 module.exports = [
   { ignores: ['eslint.config.js', 'scripts/**', '**/*.js'] },
   ...compat.config({
-    extends: ['./packages/eslint-config'],
+    extends: [path.resolve(__dirname, 'packages/eslint-config')],
     env: { node: true },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
