@@ -7,7 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/agents', agents);
+// Mount agent routes at the root so paths match the client requests
+app.use('/', agents);
 app.use('/', chat);
 app.get('/', (_req, res) => res.json({ service: 'AgentForgeHQ backend' }));
 app.get('/healthz', (_req, res) => res.send('OK'));
