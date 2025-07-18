@@ -1,0 +1,19 @@
+{
+  "name": "skip-trace-enricher",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "apollo-server": "latest",
+    "graphql": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "ts-node-dev": "latest",
+    "@types/node": "latest"
+  }
+}
