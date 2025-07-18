@@ -30,8 +30,4 @@ services:
       - '4001:4000'
     env_file:
       - .env
-  skip-trace-enricher:
-    build: ./apps/backend/src/agents/SkipTraceEnricher
-    env_file:
-      - .env
 
