@@ -17,7 +17,8 @@ router.get('/chat', (_req, res) => {
 
 // Adds a new chat message
 router.post('/chat', (req, res) => {
-  const message: Message = { id: nextId++, content: req.body.content };
+  const { content } = req.body;
+  const message: Message = { id: nextId++, content };
   messages.push(message);
   res.json(message);
 });
