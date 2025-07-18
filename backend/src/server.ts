@@ -9,6 +9,7 @@ app.use(express.json());
 
 app.use('/agents', agents);
 app.use('/', chat);
+app.get('/', (_req, res) => res.json({ service: 'AgentForgeHQ backend' }));
 app.get('/healthz', (_req, res) => res.send('OK'));
 
 const port = process.env.PORT || 4000;
