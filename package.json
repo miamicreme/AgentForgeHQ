@@ -6,9 +6,16 @@
     "services/*"
   ],
   "scripts": {
-    "lint": "echo \"No lint script defined\"",
+    "lint": "eslint . --ext .ts,.tsx",
     "build": "echo \"No build script defined\"",
-    "test": "echo \"No tests specified\"",
+    "test": "vitest run",
     "export-agents": "node scripts/export-agents.js"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^9.31.0",
+    "vitest": "^1.5.0",
+    "zod": "^3.25.6"
   }
 }
