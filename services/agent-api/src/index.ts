@@ -9,7 +9,6 @@ import Stripe from "stripe";
 import { agentSchema } from "../../../validation/agentSchema";
 import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
-import { getSupabaseClient } from "./supabaseClient";
 
 
 dotenv.config();
