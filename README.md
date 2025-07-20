@@ -123,6 +123,7 @@ cp .env.example .env
 Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
 `VITE_OPENAI_API_KEY`, and `VITE_STRIPE_SECRET_KEY` with your project credentials.
 The backend loads these variables via `dotenv` at startup.
+Keys for Slack and PagerDuty notifications (`SLACK_WEBHOOK_URL`, `PAGERDUTY_ROUTING_KEY`) should be placed only in your `.env` file.
 
 
 
@@ -499,7 +500,7 @@ VITE_GROQ_API_KEY="groq-..."
 VITE_DAILY_TOKEN_LIMIT_GLOBAL=2000000
 VITE_CPU_QUOTA_CORES_GLOBAL=32
 
-# Slack / PagerDuty
+# Slack / PagerDuty (`.env` only)
 SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
 PAGERDUTY_ROUTING_KEY="pd-..."
 ```
