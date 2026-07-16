@@ -48,6 +48,7 @@ $1)│   │   ├── Dockerfile            # React Native app
 ├── pnpm-workspace.yaml           # pnpm monorepo glue
 ├── client/                      # Vite React client app
 ├── .env.example                  # var template
+├── .env                          # your local environment values
 ├── .prettierrc                   # code‑style config
 └── README.md                     # this blueprint + badges
 ```
@@ -113,15 +114,16 @@ gateway.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and provide your keys. The example file lists all required variables:
+Before running Docker Compose, copy `.env.example` to `.env` and provide your keys. Compose reads from `.env`, so create it prior to starting any services. The example file lists all required variables:
 
 ```bash
 cp .env.example .env
 ```
 
 Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
-`OPENAI_API_KEY`, and `STRIPE_SECRET_KEY` with your project credentials.
+`VITE_OPENAI_API_KEY`, and `VITE_STRIPE_SECRET_KEY` with your project credentials.
 The backend loads these variables via `dotenv` at startup.
+Keys for Slack and PagerDuty notifications (`SLACK_WEBHOOK_URL`, `PAGERDUTY_ROUTING_KEY`) should be placed only in your `.env` file.
 
 
 
@@ -486,19 +488,19 @@ jobs:
 ```dotenv
 # Core URLs
 VITE_SUPABASE_URL="https://xxxx.supabase.co"
+VITE_SUPABASE_SERVICE_KEY="service-role-key"
 VITE_SUPABASE_ANON_KEY="public-anon-key"
-NATS_URL="nats://nats:4222"
-OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+VITE_API_URL="http://localhost:4000"
 
 # Model Providers
-OPENAI_API_KEY="sk-..."
-GROQ_API_KEY="groq-..."
+VITE_OPENAI_API_KEY="sk-..."
+VITE_GROQ_API_KEY="groq-..."
 
 # Quotas & Budgets
-dailey_token_limit_global=2000000
-cpu_quota_cores_global=32
+VITE_DAILY_TOKEN_LIMIT_GLOBAL=2000000
+VITE_CPU_QUOTA_CORES_GLOBAL=32
 
-# Slack / PagerDuty
+# Slack / PagerDuty (`.env` only)
 SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
 PAGERDUTY_ROUTING_KEY="pd-..."
 ```

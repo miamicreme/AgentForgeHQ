@@ -7,13 +7,13 @@ import path from "path";
 
 import Stripe from "stripe";
 import { agentSchema } from "../../../validation/agentSchema";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseClient } from "./supabaseClient";
 import openai from "./openai";
 
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(process.env.VITE_STRIPE_SECRET_KEY as string);
 
 
 const app = express();
@@ -43,6 +43,20 @@ app.get("/templates", (_req, res) => {
   }
 });
 
+app.get("/export-agents", (_req, res) => {
+  const agentsDir = path.join(__dirname, "../../../apps/backend/src/agents");
+  try {
+    const entries = fs.readdirSync(agentsDir, { withFileTypes: true });
+    const agents = entries
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+      .map((e) => ({ name: e.name, url: `http://${e.name}:4000` }));
+    res.json(agents);
+  } catch (err) {
+    console.error("Failed to load agents", err);
+    res.status(500).json({ error: "Failed to load agents" });
+  }
+});
+
 app.get("/healthz", (_, res) => res.send("OK"));
 app.get("/", (_, res) => res.json({ service: "AgentForgeHQ API" }));
 
@@ -65,6 +79,7 @@ app.post("/chat", (req, res) => {
   res.json(message);
 });
 app.post("/register", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -72,6 +87,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { email, password } = req.body;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return res.status(400).json({ error: error.message });
@@ -117,7 +133,26 @@ app.post("/generate-ai-agent", async (req, res) => {
 
 });
 
+app.post("/save-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("user_agents")
+      .insert(req.body)
+      .select("id")
+      .single();
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json({ success: true, id: data.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save agent" });
+  }
+});
+
 app.post("/subscribe", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
   if (!userId || !priceId) {
     return res.status(400).json({ error: "Missing userId or priceId" });
@@ -137,19 +172,6 @@ app.post("/subscribe", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to create subscription" });
   }
-});
-
-app.post("/save-agent", async (req, res) => {
-  const supabase = getSupabaseClient();
-  const result = agentSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ errors: result.error.errors });
-  }
-  const { error } = await supabase.from("agents").insert(result.data);
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  res.json({ success: true });
 });
 
 app.post("/create-agent", async (req, res) => {
