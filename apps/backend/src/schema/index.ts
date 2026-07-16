@@ -12,6 +12,11 @@ const agentSchema = readFileSync(
   'utf8'
 );
 
-const typeDefs = [baseSchema, agentSchema].join('\n');
+const skipTraceSchema = readFileSync(
+  join(__dirname, '../agents/SkipTraceEnricher/schema.graphql'),
+  'utf8'
+);
+
+const typeDefs = [baseSchema, agentSchema, skipTraceSchema].join('\n');
 
 export default typeDefs;

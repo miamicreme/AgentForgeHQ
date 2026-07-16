@@ -1,25 +1,33 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+
 
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { agentSchema } from "../../../validation/agentSchema";
+import { getSupabaseClient } from "./supabaseClient";
+import openai from "./openai";
+
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-04-10',
-});
+const stripe = new Stripe(process.env.VITE_STRIPE_SECRET_KEY as string);
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-);
 
 const app = express();
 app.use(cors(), express.json());
 
 const templatesDir = path.join(__dirname, "../templates");
+const systemPrompt = fs.readFileSync(
+  path.join(__dirname, "../manual/system-prompt.txt"),
+  "utf8"
+);
+const deepSystemPrompt = fs.readFileSync(
+  path.join(__dirname, "../manual/deep-system-prompt.txt"),
+  "utf8"
+);
 
 app.get("/templates", (_req, res) => {
   try {
@@ -35,6 +43,20 @@ app.get("/templates", (_req, res) => {
   }
 });
 
+app.get("/export-agents", (_req, res) => {
+  const agentsDir = path.join(__dirname, "../../../apps/backend/src/agents");
+  try {
+    const entries = fs.readdirSync(agentsDir, { withFileTypes: true });
+    const agents = entries
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+      .map((e) => ({ name: e.name, url: `http://${e.name}:4000` }));
+    res.json(agents);
+  } catch (err) {
+    console.error("Failed to load agents", err);
+    res.status(500).json({ error: "Failed to load agents" });
+  }
+});
+
 app.get("/healthz", (_, res) => res.send("OK"));
 app.get("/", (_, res) => res.json({ service: "AgentForgeHQ API" }));
 
@@ -43,22 +65,35 @@ interface Message {
   content: string;
 }
 
-const messages: Me
-app.post("/save-agent", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : undefined;
-  const supabase = getSupabaseClient(token);
-  const { data, error } = await supabase
-    .from("user_agents")
-    .insert(req.body)
-    .select()
-    .single();
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
+
+const messages: Message[] = [];
+let nextId = 1;
+
+app.get("/chat", (_req, res) => {
+  res.json(messages);
+});
+
+app.post("/chat", (req, res) => {
+  const message: Message = { id: nextId++, content: req.body.content };
+  messages.push(message);
+  res.json(message);
+});
+app.post("/register", async (req, res) => {
+  const supabase = getSupabaseClient();
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
   res.json(data);
+});
+
+app.post("/login", async (req, res) => {
+  const supabase = getSupabaseClient();
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 app.post("/validate-agent", (req, res) => {
   const result = agentSchema.safeParse(req.body);
   if (!result.success) {
@@ -67,22 +102,57 @@ app.post("/validate-agent", (req, res) => {
   res.json({ valid: true });
 });
 
-app.post("/generate-ai-agent", (req, res) => {
-  const { template, deepResearch } = req.body;
-  const spec = {
-    template,
-    deepResearch: !!deepResearch,
-    generatedAt: new Date().toISOString(),
-  };
-  res.json(spec);
+app.post("/generate-ai-agent", async (req, res) => {
+  const { prompt, deepResearch } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing prompt" });
+  }
+
+  const promptText = deepResearch ? deepSystemPrompt : systemPrompt;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: promptText },
+        { role: "user", content: prompt },
+      ],
+    });
+    const content = completion.choices[0].message?.content || "";
+    try {
+      res.json(JSON.parse(content));
+    } catch (err) {
+      console.error("Failed to parse JSON:", err);
+      res.status(500).json({ error: "Invalid JSON response" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to generate agent" });
+  }
+
 });
 
-app.post("/save-agent", (req, res) => {
-  // placeholder save logic
-  res.json({ saved: true, spec: req.body });
+app.post("/save-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("user_agents")
+      .insert(req.body)
+      .select("id")
+      .single();
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json({ success: true, id: data.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save agent" });
+  }
 });
 
 app.post("/subscribe", async (req, res) => {
+  const supabase = getSupabaseClient();
   const { userId, priceId } = req.body;
   if (!userId || !priceId) {
     return res.status(400).json({ error: "Missing userId or priceId" });
@@ -102,6 +172,21 @@ app.post("/subscribe", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to create subscription" });
   }
+});
+
+app.post("/create-agent", async (req, res) => {
+  const supabase = getSupabaseClient();
+  const { messages } = req.body;
+  if (!Array.isArray(messages)) {
+    return res.status(400).json({ error: "messages must be an array" });
+  }
+  const { error } = await supabase
+    .from("agents")
+    .insert({ messages });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ success: true });
 });
 
 const port = process.env.PORT || 4000;

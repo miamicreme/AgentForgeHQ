@@ -4,5 +4,6 @@ dist/
 .expo/
 logs/
 build/
-# Exported agents and Docker Compose artifacts
 export/
+**/package-lock.json
+pnpm-lock.yaml
