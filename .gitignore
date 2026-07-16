@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.expo/
+logs/
+build/
+export/
+**/package-lock.json
+pnpm-lock.yaml
