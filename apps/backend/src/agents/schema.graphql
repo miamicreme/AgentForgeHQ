@@ -1,0 +1,14 @@
+# GraphQL schema for agents
+
+type Agent {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  agent(id: ID!): Agent
+}
+
+type Mutation {
+  createAgent(name: String!): Agent!
+}

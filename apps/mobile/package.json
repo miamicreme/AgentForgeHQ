@@ -1,0 +1,20 @@
+{
+  "name": "mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "expo start --dev-client --tunnel",
+    "build": "expo build",
+    "start": "expo start"
+  },
+  "dependencies": {
+    "expo": "latest",
+    "react": "latest",
+    "react-native": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "@types/react": "latest",
+    "@types/react-native": "latest"
+  }
+}
