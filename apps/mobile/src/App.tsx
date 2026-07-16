@@ -1,3 +1,9 @@
+import { View, Text } from 'react-native';
+
 export default function App() {
-  return <h1>Mobile App</h1>;
+  return (
+    <View>
+      <Text>Mobile App</Text>
+    </View>
+  );
 }
