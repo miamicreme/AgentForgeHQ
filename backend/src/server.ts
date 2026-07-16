@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import agents from './routes/agents';
 import chat from './routes/chat';
