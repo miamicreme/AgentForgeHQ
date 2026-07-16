@@ -1,0 +1,21 @@
+{
+  "name": "gateway",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@apollo/gateway": "latest",
+    "apollo-server": "latest",
+    "graphql": "latest",
+    "dotenv": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "ts-node-dev": "latest",
+    "@types/node": "latest"
+  }
+}

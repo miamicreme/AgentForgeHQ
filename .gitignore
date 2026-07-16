@@ -5,3 +5,5 @@ dist/
 logs/
 build/
 export/
+**/package-lock.json
+pnpm-lock.yaml
