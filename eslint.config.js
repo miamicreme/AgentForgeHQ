@@ -1,20 +1,17 @@
-const { FlatCompat } = require('@eslint/eslintrc');
-const js = require('@eslint/js');
-const path = require('path');
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+const js = require('@eslint/js')
 
 module.exports = [
-  { ignores: ['eslint.config.js', 'scripts/**', '**/*.js'] },
-  ...compat.config({
-    extends: [path.resolve(__dirname, 'packages/eslint-config')],
-    env: { node: true },
+  { ignores: ['**/dist/**', '**/.next/**', '**/coverage/**', '**/node_modules/**'] },
+  js.configs.recommended,
+  {
+    files: ['**/*.{js,mjs,ts,tsx}'],
+    languageOptions: { ecmaVersion: 2022, sourceType: 'module' },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-constant-condition': 'error',
+      'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
+      'no-unreachable': 'error',
     },
-  }),
-];
+  },
+]
