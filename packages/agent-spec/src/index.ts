@@ -1,52 +1,63 @@
 import { z } from 'zod'
 
-const Identifier = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+const Identifier = z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+const NonBlank = (min: number, max: number) => z.string().trim().min(min).max(max)
+const UniqueIdentifiers = z.array(Identifier).max(50).transform((items) => [...new Set(items)])
 
 export const AgentSpecificationSchema = z
   .object({
     schemaVersion: z.literal('1.0'),
     identity: z.object({
-      name: z.string().min(2).max(120),
+      name: NonBlank(2, 120),
       slug: Identifier,
-      description: z.string().min(10).max(500),
+      description: NonBlank(10, 500),
       type: z.enum(['specialist', 'workflow', 'supervisor']),
-    }),
+    }).strict(),
     objective: z.object({
-      primary: z.string().min(10).max(1000),
-      successCriteria: z.array(z.string().min(3)).min(1).max(20),
-    }),
+      primary: NonBlank(10, 1000),
+      successCriteria: z.array(NonBlank(3, 300)).min(1).max(20).transform((items) => [...new Set(items)]),
+    }).strict(),
     instructions: z.object({
-      system: z.array(z.string().min(3)).min(1).max(50),
-    }),
-    skills: z.array(Identifier).max(50).default([]),
+      system: z.array(NonBlank(3, 1000)).min(1).max(50).transform((items) => [...new Set(items)]),
+    }).strict(),
+    skills: UniqueIdentifiers.default([]),
     tools: z.object({
-      allowed: z.array(Identifier).max(50).default([]),
-      forbidden: z.array(Identifier).max(50).default([]),
-    }),
+      allowed: UniqueIdentifiers.default([]),
+      forbidden: UniqueIdentifiers.default([]),
+    }).strict(),
     limits: z.object({
       maximumSteps: z.number().int().positive().max(500).default(50),
       maximumToolCalls: z.number().int().nonnegative().max(500).default(30),
-      maximumCostUsd: z.number().nonnegative().max(1000).default(5),
+      maximumCostUsd: z.number().finite().nonnegative().max(1000).default(5),
       executionTimeoutSeconds: z.number().int().positive().max(86_400).default(900),
-    }),
+    }).strict(),
     approvalPolicy: z.object({
       requiredFor: z.array(
         z.enum(['file_write', 'command_execution', 'pull_request_creation', 'external_message', 'deployment']),
-      ),
-    }),
+      ).transform((items) => [...new Set(items)]),
+    }).strict(),
     evaluationPolicy: z.object({
       requiredSuite: Identifier,
-      minimumScore: z.number().min(0).max(1),
-    }),
+      minimumScore: z.number().finite().min(0).max(1),
+    }).strict(),
   })
   .strict()
   .superRefine((spec, ctx) => {
-    const overlap = spec.tools.allowed.filter((tool) => spec.tools.forbidden.includes(tool))
-    for (const tool of overlap) {
+    const forbidden = new Set(spec.tools.forbidden)
+    for (const tool of spec.tools.allowed) {
+      if (forbidden.has(tool)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tools', 'allowed'],
+          message: `Tool '${tool}' cannot be both allowed and forbidden`,
+        })
+      }
+    }
+    if (spec.limits.maximumToolCalls > spec.limits.maximumSteps) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['tools', 'allowed'],
-        message: `Tool '${tool}' cannot be both allowed and forbidden`,
+        path: ['limits', 'maximumToolCalls'],
+        message: 'maximumToolCalls cannot exceed maximumSteps',
       })
     }
   })

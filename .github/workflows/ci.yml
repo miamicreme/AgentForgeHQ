@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, 'agent/**']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,11 +29,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.11.1
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Foundation audit
+        run: pnpm audit:foundation
 
       - name: Format
         run: pnpm format:check
