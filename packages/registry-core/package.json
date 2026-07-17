@@ -1,0 +1,18 @@
+{
+  "name": "@agentforgehq/registry-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.25.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^1.5.0"
+  }
+}
