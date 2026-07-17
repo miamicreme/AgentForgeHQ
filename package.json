@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.4",
-  "engines": {
-    "node": ">=20.11.0"
-  },
+  "engines": {"node": ">=20.11.0"},
   "scripts": {
     "audit:foundation": "node scripts/foundation-audit.mjs",
+    "audit:release": "node scripts/release-readiness.mjs",
     "build": "pnpm -r --if-present run build",
     "clean": "pnpm -r --if-present run clean",
     "format:check": "prettier --check .",
@@ -15,7 +14,7 @@
     "test": "pnpm -r --if-present run test",
     "test:coverage": "pnpm -r --if-present run test:coverage",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "verify": "pnpm audit:foundation && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "verify": "pnpm audit:foundation && pnpm audit:release && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "export-agents": "node scripts/export-agents.js"
   },
   "devDependencies": {
