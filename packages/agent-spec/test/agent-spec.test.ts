@@ -45,24 +45,57 @@ describe('AgentSpecification', () => {
     expect(AgentSpecificationSchema.parse(validSpec).identity.slug).toBe('repository-delivery-agent')
   })
 
-  it('rejects unknown top-level fields', () => {
+  it('rejects unknown fields at nested boundaries', () => {
     expect(() => AgentSpecificationSchema.parse({ ...validSpec, secret: 'nope' })).toThrow()
+    expect(() => AgentSpecificationSchema.parse({ ...validSpec, identity: { ...validSpec.identity, secret: 'nope' } })).toThrow()
   })
 
   it('rejects tools that are both allowed and forbidden', () => {
-    expect(() =>
-      AgentSpecificationSchema.parse({
-        ...validSpec,
-        tools: { allowed: ['github-read'], forbidden: ['github-read'] },
-      }),
-    ).toThrow(/both allowed and forbidden/)
+    expect(() => AgentSpecificationSchema.parse({
+      ...validSpec,
+      tools: { allowed: ['github-read'], forbidden: ['github-read'] },
+    })).toThrow(/both allowed and forbidden/)
   })
 
-  it('compiles deterministically regardless of skill ordering', () => {
+  it('rejects tool-call limits that exceed total steps', () => {
+    expect(() => AgentSpecificationSchema.parse({
+      ...validSpec,
+      limits: { ...validSpec.limits, maximumSteps: 5, maximumToolCalls: 6 },
+    })).toThrow(/cannot exceed maximumSteps/)
+  })
+
+  it('normalizes whitespace and removes duplicate capabilities', () => {
+    const parsed = AgentSpecificationSchema.parse({
+      ...validSpec,
+      identity: { ...validSpec.identity, name: '  Repository Delivery Agent  ' },
+      skills: ['repository-inspection', 'repository-inspection'],
+      tools: { ...validSpec.tools, allowed: ['github-read', 'github-read'] },
+    })
+    expect(parsed.identity.name).toBe('Repository Delivery Agent')
+    expect(parsed.skills).toEqual(['repository-inspection'])
+    expect(parsed.tools.allowed).toEqual(['github-read'])
+  })
+
+  it('rejects non-finite money and score values', () => {
+    expect(() => AgentSpecificationSchema.parse({
+      ...validSpec,
+      limits: { ...validSpec.limits, maximumCostUsd: Number.NaN },
+    })).toThrow()
+    expect(() => AgentSpecificationSchema.parse({
+      ...validSpec,
+      evaluationPolicy: { ...validSpec.evaluationPolicy, minimumScore: Number.POSITIVE_INFINITY },
+    })).toThrow()
+  })
+
+  it('compiles deterministically regardless of capability ordering', () => {
     const first = compileAgentSpecification(validSpec)
     const second = compileAgentSpecification({
       ...validSpec,
       skills: [...validSpec.skills].reverse(),
+      tools: {
+        allowed: [...validSpec.tools.allowed].reverse(),
+        forbidden: [...validSpec.tools.forbidden].reverse(),
+      },
     })
     expect(first).toEqual(second)
   })
@@ -72,12 +105,10 @@ describe('AgentSpecification', () => {
       ...validSpec,
       limits: { ...validSpec.limits, maximumCostUsd: 10 },
     })
-    expect(changes).toEqual([
-      {
-        path: 'limits',
-        before: validSpec.limits,
-        after: { ...validSpec.limits, maximumCostUsd: 10 },
-      },
-    ])
+    expect(changes).toEqual([{
+      path: 'limits',
+      before: validSpec.limits,
+      after: { ...validSpec.limits, maximumCostUsd: 10 },
+    }])
   })
 })
